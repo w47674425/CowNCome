@@ -1,0 +1,16 @@
+{
+  "name": "zhaoyun-adou-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "赵云与阿斗 - 文字合成 PvP 塔防（Web 版）",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0"
+  }
+}

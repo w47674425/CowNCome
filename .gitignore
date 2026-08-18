@@ -1,0 +1,16 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+
+# 本地临时文件
+tmp/
+*.log
+
+# WorkBuddy 项目数据（本地工具数据，不提交）
+.workbuddy/
+
+# 系统文件
+.DS_Store
+Thumbs.db

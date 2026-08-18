@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>赵云与阿斗 · 文字合成塔防</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #1a1208;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #app {
+      width: 100%; height: 100%;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #2a1c0e 0%, #120b05 100%);
+    }
+    #gameCanvas {
+      background: #241708;
+      border-radius: 8px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      touch-action: none;
+      cursor: pointer;
+      /* 竖版 9:16：宽度优先，高度不超过视口 */
+      width: min(100%, calc(100vh * 9 / 16));
+      height: auto;
+      aspect-ratio: 9 / 16;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
