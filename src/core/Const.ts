@@ -39,7 +39,7 @@ export const SCENE = {
 } as const;
 
 export const AD_POSITION = {
-  RESCUE_SHIELD: 'rescue_shield',   // 局内救阿斗
+  RESCUE_SHIELD: 'rescue_shield',   // 局内救牛犊
   STAMINA_REFILL: 'stamina_refill', // 体力补充
   DROP_DOUBLE: 'drop_double',       // 结算掉落翻倍
 } as const;

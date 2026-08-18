@@ -12,7 +12,7 @@ import { RecruitResult } from '../game/battle/RecruitSystem';
 
 /**
  * 战斗界面：Canvas 主渲染 + DOM HUD + 输入处理 + 主循环
- * 交互流：点征兵 → 出现待放置字牌 → 点空格放置 / 点同类同级格合成
+ * 交互流：点召唤 → 出现待放置字牌 → 点空格放置 / 点同类同级格合成
  */
 
 export class BattleScreen {
@@ -57,8 +57,8 @@ export class BattleScreen {
     const gifted = this.engine.playerSide.bench.filter((u) => u !== null).length;
     this.setHint(
       gifted > 0
-        ? `开局赠送 ${gifted} 名士兵！点击备选槽选中，再点棋盘部署`
-        : '点击「征兵」抽取字牌，抽到士兵会进入备选槽',
+        ? `开局赠送 ${gifted} 只动物伙伴！点击备选槽选中，再点棋盘部署`
+        : '点击「召唤」抽取动物字牌，抽到伙伴会进入备选槽',
     );
     this.lastTime = performance.now();
     this.raf = requestAnimationFrame(this.loop);
@@ -67,27 +67,27 @@ export class BattleScreen {
 
   private hudHtml(): string {
     return `
-      <!-- 底部操作栏（横排）：馒头 / 征兵 / 退兵 / 救阿斗 -->
+      <!-- 底部操作栏（横排）：干草 / 召唤 / 驱牛 / 救牛犊 -->
       <div id="hud-actions" style="position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
           display:flex; flex-direction:row; align-items:center; gap:10px; pointer-events:auto;">
         <div style="width:84px; text-align:center; font-size:17px; font-weight:bold; color:#ffd166;
             background:rgba(0,0,0,0.55); padding:9px 0; border-radius:10px; line-height:1.25;">
-          🍞<br><span id="hud-mantou">12</span>
+          🌾<br><span id="hud-mantou">12</span>
         </div>
         <button id="btn-recruit" style="width:200px; padding:12px 0; font-size:18px; font-weight:bold; border:none;
             border-radius:10px; cursor:pointer; color:#2a1503;
             background:linear-gradient(180deg,#ffd166,#e8a33d);">
-          征 兵 <span id="btn-recruit-cost" style="font-size:12px;">(12🍞)</span>
+          召 唤 <span id="btn-recruit-cost" style="font-size:12px;">(12🌾)</span>
         </button>
         <button id="btn-retreat" style="width:150px; padding:12px 0; font-size:15px; font-weight:bold; border:none;
             border-radius:10px; cursor:pointer; color:#fff;
             background:linear-gradient(180deg,#e05252,#a03232);">
-          🚩 退兵 <span id="btn-retreat-count" style="font-size:12px;">(1次)</span>
+          🚩 驱牛 <span id="btn-retreat-count" style="font-size:12px;">(1次)</span>
         </button>
         <button id="btn-shield" style="width:150px; padding:12px 0; font-size:14px; font-weight:bold; border:none;
             border-radius:10px; cursor:pointer; color:#fff;
             background:linear-gradient(180deg,#7fb0e0,#4a7bb0);">
-          📺 救阿斗 <span style="font-size:12px;">(+30)</span>
+          📺 救牛犊 <span style="font-size:12px;">(+30)</span>
         </button>
       </div>
 
@@ -95,7 +95,7 @@ export class BattleScreen {
       <div id="hud-hint" style="position:absolute; bottom:118px; left:50%; transform:translateX(-50%);
           font-size:13px; color:#c9b58a; white-space:nowrap;
           background:rgba(0,0,0,0.35); padding:5px 14px; border-radius:8px;">
-        点击「征兵」抽取字牌
+        点击「召唤」抽取动物字牌
       </div>
     `;
   }
@@ -132,7 +132,7 @@ export class BattleScreen {
         return;
       }
 
-      // 2. 点在棋盘 → 部署/合成
+      // 2. 点在棋盘 → 部署/合成；无待放置兵时点未解锁格 = 付费解锁
       const cell = this.pickCell(e);
       if (!cell) return;
       if (this.pendingUnit) {
@@ -155,6 +155,21 @@ export class BattleScreen {
         } else {
           this.setHint('该格不可放置：已被不同类型占用或未解锁');
         }
+        return;
+      }
+
+      // 无待放置兵：点击未解锁格 → 付费解锁
+      const board = this.engine.playerSide.board;
+      if (!board.isUnlocked(cell.x, cell.y)) {
+        const cost = board.nextCost;
+        if (cost <= 0) return;
+        if (this.engine.playerSide.mantou < cost) {
+          this.setHint(`干草不足！解锁该格需要 ${cost}🌾`);
+          return;
+        }
+        const ok = this.engine.tryUnlockCell();
+        this.setHint(ok ? `解锁成功！牧场扩至 ${board.unlockedCount} 格（花费 ${cost}🌾）` : '已全部解锁');
+        this.refreshHud();
       }
     };
 
@@ -232,16 +247,16 @@ export class BattleScreen {
 
   private onRecruit(): void {
     if (this.pendingUnit) {
-      this.setHint('已有选中士兵，请先点击格子部署或取消选中');
+      this.setHint('已有选中的伙伴，请先点击格子部署或取消选中');
       return;
     }
     if (this.engine.playerSide.benchFull()) {
-      this.setHint('备选槽已满！先部署兵力腾出空位');
+      this.setHint('备选槽已满！先部署伙伴腾出空位');
       return;
     }
     const res = this.engine.tryRecruit();
     if (!res) {
-      this.setHint('馒头不足！先击杀敌兵获取馒头');
+      this.setHint('干草不足！先击杀牛群获取干草');
       return;
     }
     this.handleRecruitResult(res);
@@ -249,15 +264,15 @@ export class BattleScreen {
 
   private handleRecruitResult(res: RecruitResult): void {
     if (res.kind === 'unit') {
-      // 士兵入备选槽（征兵前已校验槽未满，addToBench 不会失败）
+      // 动物伙伴入备选槽（召唤前已校验槽未满，addToBench 不会失败）
       this.engine.playerSide.addToBench(res.unit);
-      this.setHint(`抽到「${UNIT_CHAR[res.unit.type]}」！已放入备选槽，点击选中后部署到棋盘`);
+      this.setHint(`召唤到「${UNIT_CHAR[res.unit.type]}」！已放入备选槽，点击选中后部署到棋盘`);
     } else if (res.kind === 'heroChar') {
       this.collectHeroChar(res.heroChar);
-      this.setHint(`获得武将字牌「${res.heroChar}」！集齐可召唤武将（Phase2）`);
+      this.setHint(`获得动物字牌「${res.heroChar}」！集齐可召唤神兽（Phase2）`);
     } else {
       const ok = this.engine.playerSide.board.expandGrid();
-      this.setHint(ok ? '铲子！棋盘扩一格' : '铲子！但棋盘已满');
+      this.setHint(ok ? '铲子！牧场扩一格' : '铲子！但牧场已满');
     }
     this.refreshHud();
   }
@@ -270,21 +285,21 @@ export class BattleScreen {
 
   private onRetreat(): void {
     const ok = this.engine.retreat();
-    if (ok) this.setHint('🚩 退兵！场上敌兵已清空');
-    else this.setHint('退兵每局仅 1 次，已使用');
+    if (ok) this.setHint('🚩 驱牛！场上牛群已清空');
+    else this.setHint('驱牛每局仅 1 次，已使用');
     this.refreshHud();
   }
 
   private onShield(): void {
     if (this.engine.playerSide.shieldUsed) {
-      this.setHint('救阿斗每局仅 1 次');
+      this.setHint('救牛犊每局仅 1 次');
       return;
     }
     this.setHint('📺 观看广告中…');
     AdManager.showRewarded('rescue_shield').then((done) => {
       if (done) {
         this.engine.useShield();
-        this.setHint('广告观看完成！阿斗恢复 30 血');
+        this.setHint('广告观看完成！牛犊恢复 30 血');
       } else {
         this.setHint('广告未完成，未发放奖励');
       }
@@ -312,7 +327,7 @@ export class BattleScreen {
   private refreshHud(): void {
     const p = this.engine.playerSide;
     this.elMantou.textContent = String(p.mantou);
-    this.elRecruitBtn.querySelector('#btn-recruit-cost')!.textContent = `(${p.recruit.currentCost}🍞)`;
+    this.elRecruitBtn.querySelector('#btn-recruit-cost')!.textContent = `(${p.recruit.currentCost}🌾)`;
     this.elRetreatBtn.querySelector('#btn-retreat-count')!.textContent = p.retreatUsed ? '(已用)' : '(1次)';
     this.elShieldBtn.style.opacity = p.shieldUsed ? '0.5' : '1';
   }

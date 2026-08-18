@@ -3,13 +3,13 @@ import { Unit } from '../../data/models/Unit';
 import { getRecruitCost, RECRUIT_WEIGHTS, HERO_PITY_COUNT } from '../../data/config/RecruitCost';
 
 /**
- * 征兵系统：随机掉落 兵种(76%) / 英雄字牌(20%) / 铲子(4%)
- * 成本递增 + 英雄字牌保底（连续 N 次未出字牌，下次必出）
- * 每个英雄字牌对应三国武将（凑齐"赵+云"式组合可召唤武将，Phase2）
+ * 召唤系统：随机掉落 动物伙伴(76%) / 动物字牌(20%) / 铲子(4%)
+ * 成本递增 + 字牌保底（连续 N 次未出字牌，下次必出）
+ * 每个字牌对应一个字（集齐"牛+羊"式组合可召唤神兽，Phase2）
  */
 
-/** 武将字牌池（MVP：收集点亮图鉴；武将召唤 Phase2） */
-export const HERO_CHARS: string[] = ['赵', '云', '刘', '备', '关', '羽', '张', '飞', '诸', '葛', '亮', '马', '超', '黄', '忠', '魏', '延'];
+/** 动物字牌池（MVP：收集点亮图鉴；神兽召唤 Phase2） */
+export const HERO_CHARS: string[] = ['牛', '羊', '马', '鸡', '鸭', '鹅', '猪', '犬', '猫', '兔', '鹿', '猴'];
 
 export type RecruitResult =
   | { kind: 'unit'; unit: Unit }
@@ -20,7 +20,7 @@ export class RecruitSystem {
   private _count = 0;
   private _pityCountdown = HERO_PITY_COUNT;
 
-  /** 已征兵次数（成本递增索引） */
+  /** 已召唤次数（成本递增索引） */
   get count(): number {
     return this._count;
   }
@@ -29,7 +29,7 @@ export class RecruitSystem {
     return getRecruitCost(this._count);
   }
 
-  /** 生成一次掉落（不扣馒头，由调用方校验费用） */
+  /** 生成一次掉落（不扣干草，由调用方校验费用） */
   roll(): RecruitResult {
     this._count++;
     this._pityCountdown--;

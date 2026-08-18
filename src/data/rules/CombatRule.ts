@@ -25,7 +25,7 @@ export interface DamageResult {
   pierceDamage: number;
 }
 
-/** 击杀馒头掉落：基础 6 + 击杀者兵等级×3（合成升级的正向激励） [PLACEHOLDER: playtest 后校准] */
+/** 击杀干草掉落：基础 6 + 击杀者伙伴等级×3（合成升级的正向激励） [PLACEHOLDER: playtest 后校准] */
 export function killReward(level: number): number {
   return 6 + level * 3;
 }

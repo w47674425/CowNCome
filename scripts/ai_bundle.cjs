@@ -1,41 +1,47 @@
-import type { Side } from './BattleEngine';
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-/**
- * 对手 AI（PvE 模拟对手，随机 Dice 式对称竞速）
- * 简单策略：
- *  1. 有可合成对 → 立即合成（升级收益最高）
- *  2. 干草够召唤且有位置 → 召唤并放置
- *  3. 抽到铲子 → 立即扩格
- *  4. 濒死且还有退兵 → 用退兵保命（给玩家制造真实压力）
- * 该策略刻意"够钱就花"，后期召唤成本暴涨时会自然崩盘——符合 IAA 对局节奏
- */
-export class AIPlayer {
-  private _thinkTimer = 0;
-  private readonly _thinkInterval = 0.55;
-
-  constructor(private side: Side) {}
-
-  think(dt: number): void {
+// src/game/battle/AIPlayer.ts
+var AIPlayer_exports = {};
+__export(AIPlayer_exports, {
+  AIPlayer: () => AIPlayer
+});
+module.exports = __toCommonJS(AIPlayer_exports);
+var AIPlayer = class {
+  constructor(side) {
+    this.side = side;
+  }
+  _thinkTimer = 0;
+  _thinkInterval = 0.55;
+  think(dt) {
     if (this.side.adouHp <= 0) return;
     this._thinkTimer -= dt;
     if (this._thinkTimer > 0) return;
     this._thinkTimer = this._thinkInterval;
-
     const s = this.side;
-
-    // 一回合内连续操作（最多 6 步）：合成 → 部署备选槽 → 解锁 → 召唤 → 放置 → 再合成…
-    // 与真人"连续点击召唤 + 快速放置"的操作密度对齐，避免 AI 决策太慢
     for (let i = 0; i < 6; i++) {
       let acted = false;
-
-      // 1. 有可合成对 → 合成（升级收益最高）
       const pair = s.board.findSynthesisPair();
       if (pair) {
         s.board.synthesizePair(pair.a, pair.b);
         acted = true;
       }
-
-      // 2. 部署备选槽兵力（开局赠送/暂存的兵优先上阵；没空格先扩格）
       if (!acted) {
         let cell = s.board.firstEmptyCell();
         if (!cell) {
@@ -48,15 +54,13 @@ export class AIPlayer {
         if (cell) {
           const idx = s.bench.findIndex((u) => u !== null);
           if (idx >= 0) {
-            const u = s.bench[idx]!;
+            const u = s.bench[idx];
             s.bench[idx] = null;
             s.board.placeUnit(u, cell.x, cell.y);
             acted = true;
           }
         }
       }
-
-      // 2.5 付费解锁（成本 ≤120 才买：只拿便宜的前几格，避免影响召唤节奏）
       if (!acted) {
         const cost = s.board.nextCost;
         if (cost > 0 && cost <= 120 && s.mantou >= cost) {
@@ -65,32 +69,27 @@ export class AIPlayer {
           acted = true;
         }
       }
-
-      // 3. 召唤（有地方放才抽；铲子需要未解锁格才有意义；备选槽可暂存）
       if (!acted) {
         const cost = s.recruit.currentCost;
         const hasSpace = !!s.board.firstEmptyCell() || !!s.board.nextExpandCell() || !s.benchFull();
         if (s.mantou >= cost && hasSpace) {
           s.mantou -= cost;
           const res = s.recruit.roll();
-          if (res.kind === 'unit') {
+          if (res.kind === "unit") {
             const cell = s.board.firstEmptyCell();
             if (cell) s.board.placeUnit(res.unit, cell.x, cell.y);
             else s.addToBench(res.unit);
-          } else if (res.kind === 'shovel') {
+          } else if (res.kind === "shovel") {
             s.board.expandGrid();
           }
           acted = true;
         }
       }
-
       if (!acted) break;
     }
-
-    // 3. 濒死救场：驱牛保命（留到关键时刻，制造"差一点"的悬念）
     if (!s.retreatUsed && s.adouHp < 20 && s.enemies.length >= 3) {
       s.retreatUsed = true;
       s.enemies = [];
     }
   }
-}
+};

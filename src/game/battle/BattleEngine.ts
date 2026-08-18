@@ -10,9 +10,9 @@ import { AIPlayer } from './AIPlayer';
 /**
  * 战斗引擎（Web 版核心模拟器）
  * 模型：双方各守各的棋盘（Random Dice 式 PvP 竞速）
- *  - 敌兵沿列从顶部生成，向下走向阿斗，漏怪扣血
- *  - 棋盘上的兵自动攻击射程内敌兵，击杀掉落馒头
- *  - 谁阿斗先归零谁输；打满波次比剩余血量
+ *  - 牛群沿列从顶部生成，向下冲向牛犊，漏牛扣血
+ *  - 棋盘上的动物伙伴自动攻击射程内牛群，击杀掉落干草
+ *  - 谁牛犊先归零谁输；打满波次比剩余血量
  * 全部数值以"格"为单位（1 格 = CELL_PX 像素，渲染层换算）
  */
 
@@ -32,7 +32,7 @@ export const BATTLE_CFG = {
   MAX_SPEED: 0.52,
   ENEMY_START_Y: -0.5,
   LEAK_Y: 3.5,            // 漏怪线（格，对应棋盘底）
-  SHIELD_HP: 30,          // 广告救阿斗回复量
+  SHIELD_HP: 30,          // 广告救牛犊回复量
   INIT_MANTOU: 12,
 } as const;
 
@@ -40,34 +40,34 @@ export interface Enemy {
   id: number;
   lane: number;   // 0-3 列
   y: number;      // 格单位（出生点为 -0.5）
-  type: UnitType; // 敌兵类型：刀/枪/弓/骑（血量/速度各异）
+  type: UnitType; // 牛群类型：牛/牦/羚/犀（血量/速度各异）
   hp: number;
   maxHp: number;
   speed: number;
   reward: number;
 }
 
-/** 波次计划：单只敌兵 = 列道 + 类型（确定性生成，预告与实机 100% 一致） */
+/** 波次计划：单只牛 = 列道 + 类型（确定性生成，预告与实机 100% 一致） */
 export interface WaveEnemy {
   lane: number;
   type: UnitType;
 }
 
-/** 敌兵类型数值倍率（相对基础值） */
+/** 牛群类型数值倍率（相对基础值） */
 const ENEMY_HP_MUL: Record<UnitType, number> = {
-  [UnitType.SWORD]: 1.0,    // 刀：标准
-  [UnitType.SPEAR]: 1.15,   // 枪：皮厚
-  [UnitType.BOW]: 0.8,      // 弓：脆
-  [UnitType.CAVALRY]: 1.3,  // 骑：最肉
+  [UnitType.SWORD]: 1.0,    // 牛：标准
+  [UnitType.SPEAR]: 1.15,   // 牦：皮厚
+  [UnitType.BOW]: 0.8,      // 羚：脆
+  [UnitType.CAVALRY]: 1.3,  // 犀：最肉
 };
 const ENEMY_SPEED_MUL: Record<UnitType, number> = {
-  [UnitType.SWORD]: 1.0,    // 刀：标准
-  [UnitType.SPEAR]: 0.92,   // 枪：慢
-  [UnitType.BOW]: 1.15,     // 弓：快
-  [UnitType.CAVALRY]: 1.08, // 骑：偏快
+  [UnitType.SWORD]: 1.0,    // 牛：标准
+  [UnitType.SPEAR]: 0.92,   // 牦：慢
+  [UnitType.BOW]: 1.15,     // 羚：快
+  [UnitType.CAVALRY]: 1.08, // 犀：偏快
 };
 
-/** 生成第 wave 波的敌人计划（数量随波次增长，类型/列道随机） */
+/** 生成第 wave 波的牛群计划（数量随波次增长，类型/列道随机） */
 export function genWavePlan(wave: number): WaveEnemy[] {
   if (wave < 1 || wave > BATTLE_CFG.MAX_WAVE) return [];
   const count = Math.min(2 + Math.floor(wave * 0.8), 10);
@@ -81,7 +81,7 @@ export function genWavePlan(wave: number): WaveEnemy[] {
 export class Side {
   board = new GridBoard();
   recruit = new RecruitSystem();
-  /** 备选槽（4 格）：征兵与开局赠送的兵先入槽，玩家点选后部署到棋盘 */
+  /** 备选槽（4 格）：召唤与开局赠送的伙伴先入槽，玩家点选后部署到棋盘 */
   bench: (Unit | null)[] = [];
   mantou: number = BATTLE_CFG.INIT_MANTOU;
   adouHp: number = BATTLE_CFG.ADOU_MAX_HP;
@@ -136,7 +136,7 @@ export class Side {
     return u;
   }
 
-  /** 按当前波计划生成一只敌兵；计划耗尽时兜底随机生成 */
+  /** 按当前波计划生成一只牛；计划耗尽时兜底随机生成 */
   spawnEnemy(): Enemy {
     const plan = this.wavePlan.shift() ?? {
       lane: Math.floor(Math.random() * 4),
@@ -175,7 +175,7 @@ export class BattleEngine {
   time = 0;
   winner: BattleWinner = null;
 
-  /** 玩家操作：征兵（校验馒头并扣费）；馒头不足返回 null */
+  /** 玩家操作：召唤（校验干草并扣费）；干草不足返回 null */
   tryRecruit(): RecruitResult | null {
     const s = this.playerSide;
     if (s.mantou < s.recruit.currentCost) return null;
@@ -191,7 +191,18 @@ export class BattleEngine {
     return this.playerSide.board.placeUnit(unit, x, y);
   }
 
-  /** 玩家操作：退兵（1 次/局，清空我方场上敌兵） */
+  /** 玩家操作：付费解锁下一格（消耗递增）；干草不足或已全解锁返回 false */
+  tryUnlockCell(): boolean {
+    const s = this.playerSide;
+    const cost = s.board.nextCost;
+    if (cost <= 0 || s.mantou < cost) return false;
+    s.mantou -= cost;
+    const ok = s.board.expandGrid();
+    if (ok) EventBus.emit('mantou_changed', s.mantou);
+    return ok;
+  }
+
+  /** 玩家操作：驱牛（1 次/局，清空我方场上牛群） */
   retreat(): boolean {
     const s = this.playerSide;
     if (s.retreatUsed) return false;
@@ -201,7 +212,7 @@ export class BattleEngine {
     return true;
   }
 
-  /** 玩家操作：广告救阿斗（回血，1 次/局） */
+  /** 玩家操作：广告救牛犊（回血，1 次/局） */
   useShield(): boolean {
     const s = this.playerSide;
     if (s.shieldUsed || s.adouHp <= 0) return false;
@@ -317,7 +328,7 @@ export class BattleEngine {
     return best;
   }
 
-  /** 击杀掉落：与击杀者的兵等级挂钩（激励合成升级），掉落 5 + 等级×2 馒头 */
+  /** 击杀掉落：与击杀者的伙伴等级挂钩（激励合成升级），掉落 6 + 等级×3 干草 */
   private killEnemy(side: Side, e: Enemy, killer?: Unit): void {
     const idx = side.enemies.indexOf(e);
     if (idx < 0) return;

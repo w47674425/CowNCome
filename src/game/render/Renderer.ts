@@ -48,12 +48,12 @@ export function enemyYToPx(y: number): number {
   return BOARD_TOP - CELL / 2 + y * CELL;
 }
 
-/** 兵种主题色 */
+/** 兵种主题色（我方动物战队） */
 const TYPE_COLOR: Record<UnitType, string> = {
-  [UnitType.SWORD]: '#e05252', // 刀·红
-  [UnitType.SPEAR]: '#52b7e0', // 枪·蓝
-  [UnitType.BOW]: '#7fd052',   // 弓·绿
-  [UnitType.CAVALRY]: '#e0a852', // 骑·金
+  [UnitType.SWORD]: '#e05252', // 犬·红
+  [UnitType.SPEAR]: '#52b7e0', // 狼·蓝
+  [UnitType.BOW]: '#7fd052',   // 鹰·绿
+  [UnitType.CAVALRY]: '#e0a852', // 马·金
 };
 
 interface FloatText {
@@ -114,7 +114,7 @@ export class Renderer {
       this.floats.push({
         x: BOARD_LEFT + (e.lane + 0.5) * CELL,
         y: enemyYToPx(e.y) - 30,
-        text: '+馒头',
+        text: '+干草',
         color: '#ffb703',
         t: 0.8,
       });
@@ -134,7 +134,7 @@ export class Renderer {
     this.drawAdouBars(ctx);
     this.drawFx(dt);
 
-    // 防御：pendingUnit 存在但 pendingUnitXY 未初始化（征兵后未移动鼠标）时不画 ghost
+    // 防御：pendingUnit 存在但 pendingUnitXY 未初始化（召唤后未移动鼠标）时不画 ghost
     if (this.pendingUnit && this.pendingUnitXY) this.drawPendingGhost(ctx);
   }
 
@@ -190,15 +190,15 @@ export class Renderer {
     );
     ctx.font = '16px "Microsoft YaHei", sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.fillText('敌兵将至，守住阿斗！', VIEW_W / 2, 76);
+    ctx.fillText('牛群将至，守住牛犊！', VIEW_W / 2, 76);
   }
 
-  /** 敌兵类型显示：汉字 + 颜色（顶部预告与实机敌人共用） */
+  /** 敌兵类型显示：汉字 + 颜色（顶部预告与实机敌人共用，敌方 = 各类牛） */
   private static readonly ENEMY_CHAR: Record<UnitType, string> = {
-    [UnitType.SWORD]: '刀',
-    [UnitType.SPEAR]: '枪',
-    [UnitType.BOW]: '弓',
-    [UnitType.CAVALRY]: '骑',
+    [UnitType.SWORD]: '牛',   // 黄牛 · 标准
+    [UnitType.SPEAR]: '牦',   // 牦牛 · 皮厚
+    [UnitType.BOW]: '羚',     // 羚牛 · 轻快
+    [UnitType.CAVALRY]: '犀', // 犀牛 · 最肉
   };
   private static readonly ENEMY_COLOR: Record<UnitType, string> = {
     [UnitType.SWORD]: '#c33a3a',  // 刀·暗红
@@ -227,7 +227,7 @@ export class Renderer {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const nextWave = e.wave >= BATTLE_CFG.MAX_WAVE ? '—' : String(e.wave + 1);
-    ctx.fillText(`下一波 · 敌方（第 ${nextWave} 波）`, PREVIEW_LEFT + 16, PREVIEW_TOP + 18);
+    ctx.fillText(`下一波 · 牛群（第 ${nextWave} 波）`, PREVIEW_LEFT + 16, PREVIEW_TOP + 18);
 
     // 分割线
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
@@ -360,12 +360,21 @@ export class Renderer {
         ctx.stroke();
 
         if (!unlocked) {
-          // 未解锁：锁图标
-          ctx.fillStyle = 'rgba(255,255,255,0.18)';
-          ctx.font = '26px sans-serif';
+          // 未解锁：锁图标 + 解锁成本（干草），点击付费解锁
+          ctx.fillStyle = 'rgba(255,255,255,0.20)';
+          ctx.font = '24px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText('🔒', x, y);
+          ctx.fillText('🔒', x, y - 10);
+          const cost = board.nextCost;
+          if (cost > 0) {
+            ctx.font = 'bold 15px "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = 'rgba(255,209,102,0.85)';
+            ctx.fillText(`${cost}🌾`, x, y + 24);
+            ctx.font = '11px "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.fillText('点击解锁', x, y + 44);
+          }
           continue;
         }
 
@@ -428,7 +437,7 @@ export class Renderer {
       const y = enemyYToPx(e.y);
       if (y < -30 || y > VIEW_H + 30) continue;
 
-      // 敌兵：类型色圆 + 汉字（刀/枪/弓/骑，与顶部预告一致）
+      // 牛群：类型色圆 + 汉字（牛/牦/羚/犀，与顶部预告一致）
       const col = Renderer.ENEMY_COLOR[e.type] ?? '#7a1f1f';
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.beginPath();
@@ -462,9 +471,9 @@ export class Renderer {
     const e = this.engine.enemySide;
 
     // 对手（顶部居中，预告面板上方）
-    this.drawHpBar(ctx, '敌方阿斗', e.adouHp, BATTLE_CFG.ADOU_MAX_HP, 160, 60, 400, '#a04040');
+    this.drawHpBar(ctx, '敌方牛犊', e.adouHp, BATTLE_CFG.ADOU_MAX_HP, 160, 60, 400, '#a04040');
     // 我方（棋盘正下方居中，备选槽上方）
-    this.drawHpBar(ctx, '我方阿斗', p.adouHp, BATTLE_CFG.ADOU_MAX_HP, 160, 748, 400, '#2e7d32');
+    this.drawHpBar(ctx, '我方牛犊', p.adouHp, BATTLE_CFG.ADOU_MAX_HP, 160, 748, 400, '#2e7d32');
   }
 
   private drawHpBar(

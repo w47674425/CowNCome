@@ -20,19 +20,20 @@ export class MainMenu {
 
     root.innerHTML = `
       <div style="font-size:44px; font-weight:bold; letter-spacing:6px; color:#ffd166;
-                  text-shadow:0 0 20px rgba(255,209,102,0.4);">赵云与阿斗</div>
+                  text-shadow:0 0 20px rgba(255,209,102,0.4);">牛与来</div>
       <div style="font-size:14px; color:#c9b58a; margin-top:6px;">
-        文字合成 · 双人竞速塔防（Web MVP）
+        牧场文字合成 · 双人竞速塔防（Web MVP）
       </div>
 
       <div style="margin:20px 0; padding:14px 18px; border-radius:10px;
                   background:rgba(255,255,255,0.05); text-align:left; font-size:14px; line-height:1.9; color:#d8c9a8;">
-        <div style="color:#ffd166; font-weight:bold; margin-bottom:6px;">⚔️ 玩法速览</div>
-        <div>🍞 击杀敌兵掉落<strong>馒头</strong>，征兵抽兵种字牌</div>
-        <div>🔢 同类同级字牌拖到同格 = <strong>合成升级</strong>（最高 5 级）</div>
-        <div>🛡️ 敌兵漏到阿斗扣血，<strong>先死的一方输</strong></div>
-        <div>🚩 每局 <strong>1 次退兵</strong>，清空场上敌兵救命</div>
-        <div>📺 危急时<strong>看广告救阿斗</strong> +30 血（每局 1 次）</div>
+        <div style="color:#ffd166; font-weight:bold; margin-bottom:6px;">🐄 玩法速览</div>
+        <div>🌾 击退牛群掉落<strong>干草</strong>，召唤动物伙伴（犬/狼/鹰/马）</div>
+        <div>🔢 同类同级伙伴放到同格 = <strong>合成升级</strong>（最高 5 级）</div>
+        <div>🔒 点锁定格<strong>消耗干草解锁</strong>棋盘，花费递增</div>
+        <div>🛡️ 牛群漏到牛犊扣血，<strong>先死的一方输</strong></div>
+        <div>🚩 每局 <strong>1 次驱牛</strong>，清空场上牛群救命</div>
+        <div>📺 危急时<strong>看广告救牛犊</strong> +30 血（每局 1 次）</div>
       </div>
 
       <div style="display:flex; justify-content:space-around; margin:14px 0; font-size:15px; color:#c9b58a;">
@@ -42,7 +43,7 @@ export class MainMenu {
       </div>
 
       <div style="margin:10px 0 18px; font-size:13px; color:#9a8a66; min-height:22px;">
-        ${collected.length ? `📖 图鉴已收集：${collected.join(' ')}` : '📖 图鉴：征兵集齐武将字牌'}
+        ${collected.length ? `📖 图鉴已收集：${collected.join(' ')}` : '📖 图鉴：召唤集齐动物字牌'}
       </div>
 
       <button id="btn-start" style="

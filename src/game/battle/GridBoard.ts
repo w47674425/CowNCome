@@ -6,11 +6,21 @@ import { EventBus } from '../../core/EventBus';
 /**
  * 棋盘数据层（Web 版，零引擎依赖）
  * 4 列 × 3 行 = 12 格，初始解锁 6 格（Design Pillar: 空间即资源）
- * 铲子扩格 = expandGrid()
+ * 后续格子可付费解锁（消耗递增，见 GRID_UNLOCK_COSTS）或铲子免费扩格 = expandGrid()
  */
 export const BOARD_COLS = 4;
 export const BOARD_ROWS = 3;
 export const START_GRID_COUNT = 6;
+
+/** 付费解锁成本（干草）：第 7~12 格，成本递增（与召唤成本同理，制造资源节奏决策） */
+export const GRID_UNLOCK_COSTS = [40, 70, 110, 160, 220, 300];
+
+/** 第 unlockedCount+1 格的解锁成本（干草）；已全部解锁返回 0 */
+export function nextUnlockCost(unlockedCount: number): number {
+  const idx = unlockedCount - START_GRID_COUNT;
+  if (idx < 0 || idx >= GRID_UNLOCK_COSTS.length) return 0;
+  return GRID_UNLOCK_COSTS[idx];
+}
 
 export class GridBoard {
   /** cells[row][col]，null = 空格（可放置） */
@@ -38,6 +48,11 @@ export class GridBoard {
   isUnlocked(x: number, y: number): boolean {
     const idx = y * BOARD_COLS + x;
     return idx < this.unlockedCount;
+  }
+
+  /** 当前下一格的解锁成本（干草）；0 = 已全部解锁 */
+  get nextCost(): number {
+    return nextUnlockCost(this.unlockedCount);
   }
 
   getUnit(x: number, y: number): Unit | null {
@@ -95,7 +110,7 @@ export class GridBoard {
     return unit;
   }
 
-  /** 铲子扩格：解锁下一个空格；已满返回 false */
+  /** 扩格：解锁下一个空格（铲子免费 / 付费解锁共用）；已满返回 false */
   expandGrid(): boolean {
     const cell = this.nextExpandCell();
     if (!cell) return false;

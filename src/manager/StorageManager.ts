@@ -54,7 +54,7 @@ export interface PlayerSave {
   lastStaminaAt: number;
   wins: number;
   totalBattles: number;
-  /** 图鉴：已点亮武将 key 列表（值 = 点亮次数） */
+  /** 图鉴：已点亮动物字牌 key 列表（值 = 点亮次数） */
   collection: Record<string, number>;
   /** 装备碎片掉落记录 */
   equipDrops: string[];

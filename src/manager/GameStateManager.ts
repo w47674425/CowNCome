@@ -8,7 +8,7 @@ import { BattleState } from '../core/Const';
 
 export interface BattleResult {
   win: boolean;
-  /** 我方阿斗剩余血量 */
+  /** 我方牛犊剩余血量 */
   adouHpLeft: number;
   /** 本局击杀数 */
   kills: number;

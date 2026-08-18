@@ -15,30 +15,30 @@ export interface UnitStat {
 }
 
 const STAT: Record<UnitType, UnitStat> = {
-  // 刀：近战肉盾，攻速中等。Rationale: 前排抗伤定位，攻击低但稳定
+  // 犬：近战肉盾，攻速中等。Rationale: 前排抗伤定位，攻击低但稳定
   [UnitType.SWORD]: {
     baseAttack: 10, baseAtkSpeed: 1.2, range: 0, atkGrowth: 1.35,
   },
-  // 枪：近战穿透，打直线后排 50% 伤害（CombatRule 实现）
+  // 狼：近战穿透，打直线后排 50% 伤害（CombatRule 实现）
   [UnitType.SPEAR]: {
     baseAttack: 14, baseAtkSpeed: 1.5, range: 1, atkGrowth: 1.4,
   },
-  // 弓：远程高攻低速，射程覆盖 2/3 棋盘
+  // 鹰：远程高攻低速，射程覆盖 2/3 棋盘
   [UnitType.BOW]: {
     baseAttack: 18, baseAtkSpeed: 2.0, range: 6, atkGrowth: 1.45,
   },
-  // 骑：机动高攻，快速填补防线缺口（参考 39kf 攻略：前期优先骑兵）
+  // 马：机动高攻，快速填补防线缺口（参考 39kf 攻略：前期优先马）
   [UnitType.CAVALRY]: {
     baseAttack: 12, baseAtkSpeed: 0.9, range: 0, atkGrowth: 1.3,
   },
 };
 
-/** 各类型字牌渲染的汉字 */
+/** 各类型字牌渲染的汉字（牧场动物战队） */
 export const UNIT_CHAR: Record<UnitType, string> = {
-  [UnitType.SWORD]: '刀',
-  [UnitType.SPEAR]: '枪',
-  [UnitType.BOW]: '弓',
-  [UnitType.CAVALRY]: '骑',
+  [UnitType.SWORD]: '犬',   // 近战肉盾 · 守家犬
+  [UnitType.SPEAR]: '狼',   // 穿透撕咬 · 狼
+  [UnitType.BOW]: '鹰',     // 远程高攻 · 鹰
+  [UnitType.CAVALRY]: '马', // 冲锋高攻 · 马
 };
 
 /** 最大合成等级 [PLACEHOLDER: 假设 5 级封顶，视单局时长调] */

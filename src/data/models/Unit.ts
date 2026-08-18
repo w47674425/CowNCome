@@ -4,7 +4,7 @@ import { UnitType } from '../../core/Const';
 export class Unit {
   type: UnitType;
   level: number;
-  /** 所在格子坐标；-1 = 未上阵（征兵面板/背包中） */
+  /** 所在格子坐标；-1 = 未上阵（召唤面板/背包中） */
   gridX: number;
   gridY: number;
   /** 攻击冷却（战斗引擎维护，单位：秒） */
